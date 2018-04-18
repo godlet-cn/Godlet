@@ -1,13 +1,15 @@
 package server
 
 import (
+	"strings"
     "net"
 	"log"
     "fmt"
     "os"
     "time"
-    "github.com/godlet-io/HowGodletWorks/exp01/request"
-    "github.com/godlet-io/HowGodletWorks/exp01/response"
+    "github.com/godlet-cn/Godlet/request"
+    "github.com/godlet-cn/Godlet/response"
+    "github.com/godlet-cn/Godlet/processor"
 )
 
 
@@ -71,7 +73,14 @@ func (httpServer *HttpServer) HandleConnection(conn net.Conn) {
     
     resp:=response.NewResponse(conn)
     resp.SetRequest(req)
-    resp.SendResponse()
+
+    if strings.HasPrefix(req.Uri,"/servlet/") {
+        var processor processor.ServletProcessor1
+        processor.Process(req, resp)
+    }else{
+        var processor processor.StaticResourceProcessor
+        processor.Process(req, resp)
+    }
 
     httpServer.shutdown=req.Uri==SHUTDOWN_COMMAND
     if(httpServer.shutdown){

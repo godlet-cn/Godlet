@@ -3,7 +3,7 @@ package response
 import(
 	"net"
 	"fmt"
-	"github.com/godlet-io/HowGodletWorks/exp01/request"
+	"github.com/godlet-cn/HowGodletWorks/exp01/request"
 )
 
 const BUFFER_SIZE int =1024

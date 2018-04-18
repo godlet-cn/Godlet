@@ -7,11 +7,11 @@ import (
 )
 
 
-type ServletProcessor1 struct{
+type ServletProcessor struct{
 
 }
 
-func(processor ServletProcessor1) Process (request request.Request , response response.Response) {
+func(processor ServletProcessor) Process (request request.Request , response response.Response) {
 	fmt.Println("Handle servlet request");
 	response.SendResponse();
 }

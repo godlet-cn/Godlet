@@ -75,7 +75,7 @@ func (httpServer *HttpServer) HandleConnection(conn net.Conn) {
     resp.SetRequest(req)
 
     if strings.HasPrefix(req.Uri,"/servlet/") {
-        var processor processor.ServletProcessor1
+        var processor processor.ServletProcessor
         processor.Process(req, resp)
     }else{
         var processor processor.StaticResourceProcessor

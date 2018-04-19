@@ -1,89 +1,89 @@
 package server
 
 import (
-	"strings"
-    "net"
+	"fmt"
 	"log"
-    "fmt"
-    "os"
-    "time"
-    "github.com/godlet-cn/Godlet/request"
-    "github.com/godlet-cn/Godlet/response"
-    "github.com/godlet-cn/Godlet/processor"
+	"net"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/godlet-cn/Godlet/processor"
+	"github.com/godlet-cn/Godlet/request"
+	"github.com/godlet-cn/Godlet/response"
 )
 
-
-const SHUTDOWN_COMMAND string="/SHUTDOWN"
+const SHUTDOWN_COMMAND string = "/SHUTDOWN"
 
 //HttpServer is working to serve client connection
-type HttpServer struct{
-    port int
-    listener net.Listener
-    shutdown bool
+type HttpServer struct {
+	port     int
+	listener net.Listener
+	shutdown bool
 }
 
-func (httpServer *HttpServer) init(){
-    httpServer.shutdown=false
+func (httpServer *HttpServer) init() {
+	httpServer.shutdown = false
 }
 
 //Await start waiting for client connection
-func (httpServer *HttpServer) Await(){
-    httpServer.port=8056;
-	addr := "localhost:8056" 
-    listener,err := net.Listen("tcp",addr)
-    
-    if err != nil {
-        log.Fatal(err)
-        os.Exit(1)
-    }
+func (httpServer *HttpServer) Await() {
+	httpServer.port = 8056
+	addr := "localhost:8056"
+	listener, err := net.Listen("tcp", addr)
 
-    httpServer.listener=listener
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
+	}
 
-    defer httpServer.Close()
+	httpServer.listener = listener
 
-    for {
-        //call listener.Accept() will hang up server process to wait for a new client
-        conn,err := httpServer.listener.Accept() 
-       
-        if err != nil {
-            log.Fatal(err)
-            break
-        }
-        
-        go httpServer.HandleConnection(conn) 
-    }
+	defer httpServer.Close()
+
+	for {
+		//call listener.Accept() will hang up server process to wait for a new client
+		conn, err := httpServer.listener.Accept()
+
+		if err != nil {
+			log.Fatal(err)
+			break
+		}
+
+		go httpServer.HandleConnection(conn)
+	}
 }
 
 //Close function will shutdown HttpServer
-func (httpServer *HttpServer) Close(){
-    if httpServer.listener!=nil{
-        fmt.Println(time.Now().Local(),"Server is shutting down")
-        httpServer.listener.Close()
-    }
+func (httpServer *HttpServer) Close() {
+	if httpServer.listener != nil {
+		fmt.Println(time.Now().Local(), "Server is shutting down")
+		httpServer.listener.Close()
+	}
 }
 
 //HandleConnection handle a client connection
-func (httpServer *HttpServer) HandleConnection(conn net.Conn) { 
+func (httpServer *HttpServer) HandleConnection(conn net.Conn) {
 
-    //conn will be closed finally whatever this function does
-    defer conn.Close()
+	//conn will be closed finally whatever this function does
+	defer conn.Close()
 
-	req:=request.NewRequest(conn)
-    req.Parse()
-    
-    resp:=response.NewResponse(conn)
-    resp.SetRequest(req)
+	req := request.NewRequest(conn)
+	req.Parse()
 
-    if strings.HasPrefix(req.Uri,"/servlet/") {
-        var processor processor.ServletProcessor
-        processor.Process(req, resp)
-    }else{
-        var processor processor.StaticResourceProcessor
-        processor.Process(req, resp)
-    }
+	resp := response.NewResponse(conn)
+	resp.SetRequest(req)
 
-    httpServer.shutdown=req.Uri==SHUTDOWN_COMMAND
-    if(httpServer.shutdown){
-        httpServer.Close()
-    }
+	if strings.HasPrefix(req.Uri, "/servlet/") {
+		var processor processor.ServletProcessor
+		processor.Process(req, resp)
+	} else {
+		var processor processor.StaticResourceProcessor
+		processor.Process(req, resp)
+	}
+
+	httpServer.shutdown = req.Uri == SHUTDOWN_COMMAND
+	if httpServer.shutdown {
+		httpServer.Close()
+	}
 }
